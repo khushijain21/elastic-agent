@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -207,6 +208,16 @@ func getTimestamp(evt map[string]interface{}, key string, format string) time.Ti
 
 func getFields(evt map[string]interface{}, ignore []string) []zapcore.Field {
 	fields := make([]zapcore.Field, 0, len(evt))
+
+	// redirect failed input docs from ES to `-event.log` file
+	if value, ok := evt["input"]; ok {
+		pattern := `{"create":{"_index":.*`
+		match, _ := regexp.MatchString(pattern, value.(string))
+		if match {
+			fields = append(fields, zap.String("log.type", "event"))
+		}
+	}
+
 	for k, v := range evt {
 		if len(ignore) > 0 && contains(ignore, k) {
 			// ignore field

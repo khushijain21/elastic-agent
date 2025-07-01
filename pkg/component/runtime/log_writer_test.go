@@ -292,6 +292,36 @@ func TestLogWriter(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name:      "add log.type field to log messages containing input document",
+			LogLevel:  zapcore.DebugLevel,
+			LogSource: logSourceStdout,
+			Config: component.CommandLogSpec{
+				LevelKey:   "log.level",
+				TimeKey:    "@timestamp",
+				TimeFormat: time.RFC3339Nano,
+				MessageKey: "message",
+				IgnoreKeys: []string{"ignore"},
+			},
+			Lines: []string{
+				`{"@timestamp": "2009-11-10T23:00:00Z", "log.level": "debug", "message": "message field",`,
+				`"input": "{\"create\":{\"_index\":\"some-index\"}}"}`,
+				"\n",
+			},
+			Wrote: []wrote{
+				{
+					entry: zapcore.Entry{
+						Level:   zapcore.DebugLevel,
+						Time:    parseTime("2009-11-10T23:00:00Z", time.RFC3339Nano),
+						Message: "message field",
+					},
+					fields: []zapcore.Field{
+						zap.String("log.type", "event"),
+						zap.String("input", "{\"create\":{\"_index\":\"some-index\"}}"),
+					},
+				},
+			},
+		},
 	}
 
 	for _, scenario := range scenarios {
