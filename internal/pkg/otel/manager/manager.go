@@ -60,6 +60,9 @@ const (
 	// The processor aggregates and renames raw collector internal-telemetry metrics into a canonical
 	// form; both the file exporter and the connector consume its output.
 	elasticMonitoringProcessorName = "elasticmonitoringprocessor"
+	// headersSetterExtensionName is the ID of the headers_setter extension the agent injects to set
+	// the User-Agent
+	headersSetterExtensionName = "headers_setter/" + translate.OtelNamePrefix
 )
 
 type collectorRecoveryTimer interface {
@@ -576,10 +579,9 @@ func injectDiagnosticsExtension(config *confmap.Conf) error {
 }
 
 func injectHeaderSetterExtension(config *confmap.Conf, agentInfo info.Agent) error {
-	extensionName := fmt.Sprintf("%s/%s", "headers_setter", translate.OtelNamePrefix)
 	return mergeWithExtensions(config, confmap.NewFromStringMap(map[string]any{
 		"extensions": map[string]any{
-			extensionName: map[string]any{
+			headersSetterExtensionName: map[string]any{
 				"headers": []any{
 					map[string]any{
 						"action": "upsert",
@@ -590,7 +592,7 @@ func injectHeaderSetterExtension(config *confmap.Conf, agentInfo info.Agent) err
 			},
 		},
 		"service": map[string]any{
-			"extensions": []any{extensionName},
+			"extensions": []any{headersSetterExtensionName},
 		},
 	}))
 }
@@ -947,6 +949,8 @@ func (m *OTelManager) handleOtelStatusUpdate(otelStatus *status.AggregateStatus)
 				case extensionKey == "extension:"+m.healthCheckExtComponentID:
 					delete(extensionsMap.ComponentStatusMap, extensionKey)
 				case strings.HasPrefix(extensionKey, "extension:kafkapartitioner"):
+					delete(extensionsMap.ComponentStatusMap, extensionKey)
+				case extensionKey == "extension:"+headersSetterExtensionName:
 					delete(extensionsMap.ComponentStatusMap, extensionKey)
 				}
 			}

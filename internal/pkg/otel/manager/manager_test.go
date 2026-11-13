@@ -1829,6 +1829,12 @@ func TestOTelManager_handleOtelStatusUpdate(t *testing.T) {
 							"extension:kafkapartitioner/test": {
 								Event: componentstatus.NewEvent(componentstatus.StatusOK),
 							},
+							"extension:headers_setter/_agent-component/": {
+								Event: componentstatus.NewEvent(componentstatus.StatusOK),
+							},
+							"extension:headers_setter/user": {
+								Event: componentstatus.NewEvent(componentstatus.StatusOK),
+							},
 							"extension:oauth2client/test": {
 								Event: componentstatus.NewEvent(componentstatus.StatusOK),
 							},
@@ -1846,6 +1852,9 @@ func TestOTelManager_handleOtelStatusUpdate(t *testing.T) {
 					"extensions": {
 						Event: componentstatus.NewEvent(componentstatus.StatusOK),
 						ComponentStatusMap: map[string]*status.AggregateStatus{
+							"extension:headers_setter/user": {
+								Event: componentstatus.NewEvent(componentstatus.StatusOK),
+							},
 							"extension:oauth2client/test": {
 								Event: componentstatus.NewEvent(componentstatus.StatusOK),
 							},
